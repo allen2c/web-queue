@@ -1,33 +1,37 @@
 [project]
 authors = [{ name = "Allen Chou", email = "f1470891079@gmail.com" }]
 dependencies = [
-  "dictpress (>=0.3.0)",
+  "bs4",
+  "dictpress",
+  "fastapi",
+  "httpx",
   "openai (>=1,<2)",
   "openai-agents (>=0.1.0,<1.0.0)",
+  "playwright",
   "pydantic (>=2)",
   "str-or-none",
+  "yarl",
 ]
-description = "AllenChou's Python template."
+description = "Get web content from queue."
 license = { text = "MIT" }
-name = "ac-py-template"
+name = "web-queue"
 readme = "README.md"
 requires-python = ">=3.11,<4"
 version = "0.1.0"
 
 [project.urls]
-Homepage = "https://github.com/allen2c/ac-py-template"
-"PyPI" = "https://pypi.org/project/ac-py-template/"
-Repository = "https://github.com/allen2c/ac-py-template"
+Homepage = "https://github.com/allen2c/web-queue"
+"PyPI" = "https://pypi.org/project/web-queue/"
+Repository = "https://github.com/allen2c/web-queue"
 
 [tool.poetry]
-packages = [{ include = "ac_py_template" }]
+packages = [{ include = "web_queue" }]
 
 [tool.poetry.extras]
 all = []
 
 [tool.poetry.group.dev.dependencies]
 black = { extras = ["jupyter"], version = "*" }
-codepress = "*"
 isort = "*"
 poetry-plugin-export = "*"
 pytest = "*"
