@@ -2,6 +2,7 @@
 authors = [{ name = "Allen Chou", email = "f1470891079@gmail.com" }]
 dependencies = [
   "bs4",
+  "cachetic",
   "dictpress",
   "fastapi",
   "httpx",
@@ -13,6 +14,7 @@ dependencies = [
   "pydantic (>=2)",
   "pydantic-settings",
   "str-or-none",
+  "tiktoken",
   "yarl",
 ]
 description = "Get web content from queue."
