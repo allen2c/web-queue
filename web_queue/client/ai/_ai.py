@@ -32,7 +32,7 @@ class AI:
         Analyzes HTML to find content body selector and extract metadata values.
         """
         openai_client = self.client.settings.openai_client
-        model_name = self.client.settings.model
+        model_name = self.client.settings.OPENAI_MODEL
 
         html = str(html)
 
@@ -46,7 +46,7 @@ class AI:
         )
         if might_cached_data is not None:
             logger.debug(
-                "Hit cache 'retrieve_html_content_metadata':"
+                "Hit cache 'as_html_content_metadata':"
                 + f"{pretty_repr(html, max_string=32)}"
             )
             return HTMLContentMetadata.model_validate_json(
@@ -116,16 +116,18 @@ class AI:
                 return None
 
             elif response_msg.parsed:
-                logger.info(f"LLM response: {response_msg.parsed}")
+                output: HTMLContentMetadata = response_msg.parsed
+                output._html = html
+                logger.info(f"LLM response: {output}")
 
                 # Cache the response
                 await asyncio.to_thread(
                     self.client.settings.compressed_base64_cache.set,
                     cache_key,
-                    compress(response_msg.parsed.model_dump_json()),
+                    compress(output.model_dump_json()),
                 )
 
-                return response_msg.parsed
+                return output
 
             else:
                 logger.error(f"LLM Error for message: {response_msg}")

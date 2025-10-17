@@ -77,3 +77,6 @@ class HTMLContentMetadata(pydantic.BaseModel):
             "Return empty string if not found."
         ),
     )
+
+    # Private attributes
+    _html: str = pydantic.PrivateAttr(default="")
