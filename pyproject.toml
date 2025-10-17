@@ -9,6 +9,7 @@ dependencies = [
   "openai-agents (>=0.1.0,<1.0.0)",
   "playwright",
   "pydantic (>=2)",
+  "pydantic-settings",
   "str-or-none",
   "yarl",
 ]
