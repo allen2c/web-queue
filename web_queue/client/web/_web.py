@@ -41,7 +41,11 @@ class Web:
         self,
         url: typing.Text | yarl.URL | httpx.URL,
         *,
-        human_delay_base_delay: float = 1.2,
+        headless: bool = True,
+        goto_timeout: int = 4000,  # 4 seconds
+        circling_times: int = 3,
+        scrolling_times: int = 3,
+        human_delay_base_delay: float = 0.4,
         dynamic_content_loading_delay: float = 2.0,
     ) -> bs4.BeautifulSoup:
         _url = str_or_none(str(url))
@@ -60,7 +64,7 @@ class Web:
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(
-                headless=False,
+                headless=headless,
                 args=[
                     "--no-sandbox",
                     "--disable-blink-features=AutomationControlled",
@@ -78,9 +82,12 @@ class Web:
                 viewport=_viewport,
                 locale="en-US",
                 timezone_id="Asia/Tokyo",
+                permissions=["geolocation"],
                 extra_http_headers={
                     "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",  # noqa: E501
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "Accept-Charset": "utf-8",
                 },
             )
 
@@ -94,7 +101,7 @@ class Web:
                 # Navigate to URL
                 try:
                     await page.goto(
-                        _url, wait_until="domcontentloaded", timeout=4000  # 4 seconds
+                        _url, wait_until="domcontentloaded", timeout=goto_timeout
                     )  # Wait for network idle
                 except PlaywrightTimeoutError:
                     logger.info(f"Timeout for goto '{_url}', continuing...")
@@ -105,12 +112,12 @@ class Web:
                 await human_delay(human_delay_base_delay)
 
                 # Simulate smooth mouse circling three times
-                for _ in range(3):
+                for _ in range(circling_times):
                     await simulate_mouse_circling(page, _viewport)
                     await human_delay(human_delay_base_delay)
 
                 # Simulate scrolling three times
-                for _ in range(3):
+                for _ in range(scrolling_times):
                     await simulate_scrolling(page)
                     await human_delay(human_delay_base_delay)
 
