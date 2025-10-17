@@ -5,6 +5,8 @@ dependencies = [
   "dictpress",
   "fastapi",
   "httpx",
+  "logfire",
+  "logging_bullet_train",
   "openai (>=1,<2)",
   "openai-agents (>=0.1.0,<1.0.0)",
   "playwright",
