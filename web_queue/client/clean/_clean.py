@@ -10,7 +10,7 @@ class Clean:
     def __init__(self, client: WebQueueClient):
         self.client = client
 
-    def clean(self, html: bs4.BeautifulSoup | str) -> bs4.BeautifulSoup:
+    def as_main_content(self, html: bs4.BeautifulSoup | str) -> bs4.BeautifulSoup:
         html = (
             bs4.BeautifulSoup(html, "html.parser")
             if isinstance(html, typing.Text)

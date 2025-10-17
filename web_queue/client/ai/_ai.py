@@ -13,6 +13,9 @@ from web_queue.client import WebQueueClient
 from web_queue.types.html_content_metadata import HTMLContentMetadata
 from web_queue.utils.compression import compress, decompress
 
+if typing.TYPE_CHECKING:
+    import bs4
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,8 +24,8 @@ class AI:
         self.client = client
 
     @logfire.instrument
-    async def retrieve_html_content_metadata(
-        self, html: typing.Text
+    async def as_html_content_metadata(
+        self, html: typing.Union["bs4.BeautifulSoup", typing.Text]
     ) -> typing.Optional[HTMLContentMetadata]:
         """Extract content metadata and CSS selector from HTML.
 
@@ -30,6 +33,8 @@ class AI:
         """
         openai_client = self.client.settings.openai_client
         model_name = self.client.settings.model
+
+        html = str(html)
 
         cache_key = (
             "retrieve_html_content_metadata:"

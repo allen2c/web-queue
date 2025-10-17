@@ -11,17 +11,6 @@ class HTMLContentMetadata(pydantic.BaseModel):
     Extracts content body CSS selector and metadata values.
     """
 
-    content_body_css_selector: str = pydantic.Field(
-        default="",
-        description=(
-            "CSS selector for the main content body element "
-            "containing article text only. "
-            "Exclude metadata like title, author, dates. "
-            "Example: 'div.article-body', 'div#novel-content'. "
-            "Use standard CSS syntax. Return empty string if not found."
-        ),
-    )
-
     title: str = pydantic.Field(
         default="",
         description=(
@@ -51,6 +40,17 @@ class HTMLContentMetadata(pydantic.BaseModel):
         description=(
             "The actual chapter number (e.g., '1', '42', 'Chapter 5'). "
             "Return empty string if not found."
+        ),
+    )
+
+    content_body_css_selector: str = pydantic.Field(
+        default="",
+        description=(
+            "CSS selector for the main content body element "
+            "containing article text only. "
+            "Exclude metadata like title, author, dates. "
+            "Example: 'div.article-body', 'div#novel-content'. "
+            "Use standard CSS syntax. Return empty string if not found."
         ),
     )
 

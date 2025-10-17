@@ -43,7 +43,7 @@ class Web:
         *,
         human_delay_base_delay: float = 1.2,
         dynamic_content_loading_delay: float = 2.0,
-    ) -> typing.Text:
+    ) -> bs4.BeautifulSoup:
         _url = str_or_none(str(url))
         if not _url:
             raise fastapi.exceptions.HTTPException(status_code=400, detail="Empty URL")
@@ -56,7 +56,7 @@ class Web:
             html_content = await asyncio.to_thread(
                 decompress, maybe_html_content, format="zstd"
             )
-            return html_content
+            return bs4.BeautifulSoup(html_content, "html.parser")
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(
@@ -140,18 +140,4 @@ class Web:
             compress(html_content, format="zstd"),
         )
 
-        return html_content
-
-    async def fetch_as_bs4(
-        self,
-        url: typing.Text | yarl.URL | httpx.URL,
-        *,
-        human_delay_base_delay: float = 1.2,
-        dynamic_content_loading_delay: float = 2.0,
-    ) -> bs4.BeautifulSoup:
-        html_content = await self.fetch(
-            url,
-            human_delay_base_delay=human_delay_base_delay,
-            dynamic_content_loading_delay=dynamic_content_loading_delay,
-        )
         return bs4.BeautifulSoup(html_content, "html.parser")
