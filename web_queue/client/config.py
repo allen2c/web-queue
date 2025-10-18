@@ -15,6 +15,7 @@ class Settings(pydantic_settings.BaseSettings):
     # Cache
     WEB_CACHE_PATH: typing.Text = pydantic.Field(default="./.cache/web.cache")
     WEB_CACHE_EXPIRE_SECONDS: int = pydantic.Field(default=60 * 60 * 24)  # 1 day
+    WEB_SCREENSHOT_PATH: typing.Text = pydantic.Field(default="./data/screenshots")
     COMPRESSED_BASE64_CACHE_PATH: typing.Text = pydantic.Field(
         default="./.cache/compressed_base64.cache"
     )
@@ -45,3 +46,7 @@ class Settings(pydantic_settings.BaseSettings):
             cache_url=pathlib.Path(self.COMPRESSED_BASE64_CACHE_PATH),
             default_ttl=self.COMPRESSED_BASE64_CACHE_EXPIRE_SECONDS,
         )
+
+    @property
+    def web_screenshot_path(self) -> pathlib.Path:
+        return pathlib.Path(self.WEB_SCREENSHOT_PATH)

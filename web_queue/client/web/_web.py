@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import secrets
+import time
 import typing
 
 import bs4
@@ -45,7 +46,7 @@ class Web:
         goto_timeout: int = 4000,  # 4 seconds
         circling_times: int = 3,
         scrolling_times: int = 3,
-        human_delay_base_delay: float = 0.4,
+        human_delay_base_delay: float = 1.2,
         dynamic_content_loading_delay: float = 2.0,
     ) -> bs4.BeautifulSoup:
         _url = str_or_none(str(url))
@@ -54,6 +55,7 @@ class Web:
 
         html_content: typing.Text | None = None
 
+        logger.info(f"Browser is fetching {_url}")
         maybe_html_content = self.client.settings.web_cache.get(_url)
         if maybe_html_content:
             logger.debug(f"Hit web cache for {_url}")
@@ -118,7 +120,7 @@ class Web:
 
                 # Simulate scrolling three times
                 for _ in range(scrolling_times):
-                    await simulate_scrolling(page)
+                    await simulate_scrolling(page, scroll_direction="down")
                     await human_delay(human_delay_base_delay)
 
                 # Extra delay for dynamic content loading
@@ -132,6 +134,13 @@ class Web:
                 logger.info(
                     f"Fetched HTML content size: {html_content_size} for {_url}"
                 )
+
+                # Screenshot
+                screenshot_path = self.client.settings.web_screenshot_path.joinpath(
+                    f"{int(time.time()*1E3)}_{secrets.token_hex(2)}.png"
+                )
+                screenshot_path.write_bytes(await page.screenshot())
+                logger.info(f"Screenshot saved to {screenshot_path}")
 
             finally:
                 await browser.close()

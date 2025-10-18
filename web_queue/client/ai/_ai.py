@@ -10,7 +10,7 @@ import logfire
 from rich.pretty import pretty_repr
 
 from web_queue.client import WebQueueClient
-from web_queue.types.html_content_metadata import HTMLContentMetadata
+from web_queue.types.html_metadata_response import HTMLMetadataResponse
 from web_queue.utils.compression import compress, decompress
 
 if typing.TYPE_CHECKING:
@@ -24,9 +24,9 @@ class AI:
         self.client = client
 
     @logfire.instrument
-    async def as_html_content_metadata(
+    async def as_html_metadata(
         self, html: typing.Union["bs4.BeautifulSoup", typing.Text]
-    ) -> typing.Optional[HTMLContentMetadata]:
+    ) -> typing.Optional[HTMLMetadataResponse]:
         """Extract content metadata and CSS selector from HTML.
 
         Analyzes HTML to find content body selector and extract metadata values.
@@ -35,6 +35,8 @@ class AI:
         model_name = self.client.settings.OPENAI_MODEL
 
         html = str(html)
+
+        logger.info(f"AI is extracting content metadata from HTML: {html}")
 
         cache_key = (
             "retrieve_html_content_metadata:"
@@ -49,7 +51,7 @@ class AI:
                 "Hit cache 'as_html_content_metadata':"
                 + f"{pretty_repr(html, max_string=32)}"
             )
-            return HTMLContentMetadata.model_validate_json(
+            return HTMLMetadataResponse.model_validate_json(
                 decompress(might_cached_data)
             )
 
@@ -108,7 +110,7 @@ class AI:
                     {"role": "user", "content": html},
                 ],
                 model=model_name,
-                response_format=HTMLContentMetadata,
+                response_format=HTMLMetadataResponse,
             )
             response_msg = parsed_cmpl.choices[0].message
             if response_msg.refusal:
@@ -116,7 +118,7 @@ class AI:
                 return None
 
             elif response_msg.parsed:
-                output: HTMLContentMetadata = response_msg.parsed
+                output: HTMLMetadataResponse = response_msg.parsed
                 output._html = html
                 logger.info(f"LLM response: {output}")
 

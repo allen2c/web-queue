@@ -40,7 +40,7 @@ class WebQueueClient:
 
         html = await self.web.fetch(url)
         html = self.clean.as_main_content(html)
-        html_content_metadata = await self.ai.as_html_content_metadata(html)
+        html_content_metadata = await self.ai.as_html_metadata(html)
 
         if not html_content_metadata:
             raise ValueError(f"Failed to retrieve content metadata for url: {url}")

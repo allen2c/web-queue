@@ -5,7 +5,7 @@ import pydantic
 logger = logging.getLogger(__name__)
 
 
-class HTMLContentMetadata(pydantic.BaseModel):
+class HTMLMetadataResponse(pydantic.BaseModel):
     """Structured response for HTML content metadata and element locators.
 
     Extracts content body CSS selector and metadata values.
