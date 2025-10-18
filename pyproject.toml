@@ -6,6 +6,7 @@ dependencies = [
   "dictpress",
   "fastapi",
   "httpx",
+  "huey",
   "logfire",
   "logging_bullet_train",
   "openai (>=1,<2)",
