@@ -27,6 +27,7 @@ logger.info(f"Web queue connecting to redis: {web_queue_settings.web_queue_safe_
 huey_app = huey.RedisExpireHuey(
     web_queue_settings.WEB_QUEUE_NAME,
     url=web_queue_settings.WEB_QUEUE_URL.get_secret_value(),
+    expire_time=24 * 60 * 60,  # 24 hours
 )
 
 
