@@ -29,7 +29,7 @@ update:
 
 # Application
 worker-run:
-	huey_consumer web_queue.app.huey_app -k thread
+	huey_consumer web_queue.app.huey_app -k thread -w 2
 
 # Docs
 mkdocs:
