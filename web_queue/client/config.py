@@ -16,6 +16,7 @@ class Settings(pydantic_settings.BaseSettings):
     WEB_CACHE_PATH: typing.Text = pydantic.Field(default="./.cache/web.cache")
     WEB_CACHE_EXPIRE_SECONDS: int = pydantic.Field(default=60 * 60 * 24)  # 1 day
     WEB_SCREENSHOT_PATH: typing.Text = pydantic.Field(default="./data/screenshots")
+    WEB_PDF_PATH: typing.Text = pydantic.Field(default="./data/pdfs")
     COMPRESSED_BASE64_CACHE_PATH: typing.Text = pydantic.Field(
         default="./.cache/compressed_base64.cache"
     )
@@ -49,4 +50,12 @@ class Settings(pydantic_settings.BaseSettings):
 
     @property
     def web_screenshot_path(self) -> pathlib.Path:
-        return pathlib.Path(self.WEB_SCREENSHOT_PATH)
+        _path = pathlib.Path(self.WEB_SCREENSHOT_PATH)
+        _path.mkdir(parents=True, exist_ok=True)
+        return _path
+
+    @property
+    def web_pdf_path(self) -> pathlib.Path:
+        _path = pathlib.Path(self.WEB_PDF_PATH)
+        _path.mkdir(parents=True, exist_ok=True)
+        return _path

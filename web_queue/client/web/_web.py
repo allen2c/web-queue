@@ -54,6 +54,8 @@ class Web:
             raise fastapi.exceptions.HTTPException(status_code=400, detail="Empty URL")
 
         html_content: typing.Text | None = None
+        h_delay = human_delay_base_delay
+        d_delay = dynamic_content_loading_delay
 
         logger.info(f"Browser is fetching {_url}")
         maybe_html_content = self.client.settings.web_cache.get(_url)
@@ -101,30 +103,38 @@ class Web:
 
             try:
                 # Navigate to URL
+                logger.debug(f"Navigating (timeout: {goto_timeout}ms) to {_url}")
                 try:
                     await page.goto(
                         _url, wait_until="domcontentloaded", timeout=goto_timeout
                     )  # Wait for network idle
                 except PlaywrightTimeoutError:
                     logger.info(f"Timeout for goto '{_url}', continuing...")
-                await human_delay(human_delay_base_delay)  # Initial delay
+                await human_delay(h_delay)  # Initial delay
 
                 # Wait for full page load (additional checks)
+                logger.debug(f"Waiting {h_delay}s for full page load")
                 await page.wait_for_load_state("domcontentloaded")
-                await human_delay(human_delay_base_delay)
+                await human_delay(h_delay)
 
                 # Simulate smooth mouse circling three times
-                for _ in range(circling_times):
-                    await simulate_mouse_circling(page, _viewport)
-                    await human_delay(human_delay_base_delay)
+                start_position = None
+                for i in range(circling_times):
+                    logger.debug(f"Simulating mouse circling {i+1} of {circling_times}")
+                    start_position = await simulate_mouse_circling(
+                        page, _viewport, start_position=start_position
+                    )
+                    await human_delay(h_delay)
 
                 # Simulate scrolling three times
-                for _ in range(scrolling_times):
+                for i in range(scrolling_times):
+                    logger.debug(f"Simulating scrolling {i+1} of {scrolling_times}")
                     await simulate_scrolling(page, scroll_direction="down")
-                    await human_delay(human_delay_base_delay)
+                    await human_delay(h_delay)
 
                 # Extra delay for dynamic content loading
-                await human_delay(dynamic_content_loading_delay)
+                logger.debug(f"Delaying {d_delay}s for dynamic content loading")
+                await human_delay(d_delay)
 
                 # Get full HTML content
                 html_content = await page.content()
@@ -135,12 +145,18 @@ class Web:
                     f"Fetched HTML content size: {html_content_size} for {_url}"
                 )
 
-                # Screenshot
+                # Screenshot and PDF
+                snapshot_filename = f"{int(time.time()*1E3)}_{secrets.token_hex(2)}"
                 screenshot_path = self.client.settings.web_screenshot_path.joinpath(
-                    f"{int(time.time()*1E3)}_{secrets.token_hex(2)}.png"
+                    f"{snapshot_filename}.png"
                 )
                 screenshot_path.write_bytes(await page.screenshot())
                 logger.info(f"Screenshot saved to {screenshot_path}")
+                pdf_path = self.client.settings.web_pdf_path.joinpath(
+                    f"{snapshot_filename}.pdf"
+                )
+                await page.pdf(path=pdf_path, print_background=True)
+                logger.info(f"PDF saved to {pdf_path}")
 
             finally:
                 await browser.close()
