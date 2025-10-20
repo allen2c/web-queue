@@ -12,7 +12,14 @@ WAIT_FOR_SECONDS = 60
 
 
 def main(url: str):
-    task = fetch_html(FetchHTMLMessage(data=FetchHTMLMessageRequest(url=url)))
+    task = fetch_html(
+        FetchHTMLMessage(
+            data=FetchHTMLMessageRequest(
+                url=url,
+                headless=False,
+            )
+        )
+    )
     task = typing.cast(Result, task)
     print(f"Task ID: {task.id}")
 

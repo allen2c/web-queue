@@ -2,6 +2,7 @@ import logging
 import typing
 
 import bs4
+from rich.pretty import pretty_repr
 
 from web_queue.client import WebQueueClient
 from web_queue.utils.html_cleaner import HTMLCleaner
@@ -20,6 +21,6 @@ class Clean:
             else html
         )
 
-        logger.info(f"Cleaning HTML: {html}")
+        logger.info(f"Cleaning HTML: {pretty_repr(str(html), max_string=64)}")
         cleaned_html = HTMLCleaner.clean_as_main_content_html_str(html)
         return bs4.BeautifulSoup(cleaned_html, "html.parser")

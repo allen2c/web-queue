@@ -39,7 +39,10 @@ class AI:
 
         html = str(html)
 
-        logger.info(f"AI is extracting content metadata from HTML: {html}")
+        logger.info(
+            "AI is extracting content metadata from HTML: "
+            + f"{pretty_repr(str(html), max_string=64)}"
+        )
 
         cache_key = (
             "retrieve_html_content_metadata:"

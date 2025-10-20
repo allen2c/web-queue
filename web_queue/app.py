@@ -64,7 +64,7 @@ def fetch_html(
             message.message = message_text
         web_queue_settings.message_cache.set(wq_cache_key, message.model_dump_json())
 
-    logger.info(f"Fetching HTML from {message.data.url}")
+    logger.info(f"Fetching HTML with parameters: {message.data.model_dump_json()}")
     update_message_cache(message_text="Starting to fetch HTML...")
 
     loop = asyncio.new_event_loop()
@@ -81,6 +81,8 @@ def fetch_html(
         return html_content.model_dump_json()
 
     except Exception as e:
+        logger.exception(e)
+        logger.error(f"Failed to fetch HTML: {e}")
         update_message_cache(message_text=f"Failed to fetch HTML: {e}")
 
     finally:
