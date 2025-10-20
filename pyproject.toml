@@ -20,7 +20,7 @@ dependencies = [
 ]
 description = "Get web content from queue."
 license = { text = "MIT" }
-name = "web-queue"
+name = "web-queue2"
 readme = "README.md"
 requires-python = ">=3.11,<4"
 version = "0.1.0"
