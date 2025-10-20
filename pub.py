@@ -6,12 +6,13 @@ from huey.api import Result
 from str_or_none import str_or_none
 
 from web_queue.app import fetch_html
+from web_queue.types.fetch_html_message import FetchHTMLMessage, FetchHTMLMessageRequest
 
 WAIT_FOR_SECONDS = 60
 
 
 def main(url: str):
-    task = fetch_html(url)
+    task = fetch_html(FetchHTMLMessage(data=FetchHTMLMessageRequest(url=url)))
     task = typing.cast(Result, task)
     print(f"Task ID: {task.id}")
 

@@ -42,7 +42,7 @@ class WebQueueClient:
         *,
         headless: bool = False,
         goto_timeout: int = 4000,  # 4 seconds
-        circling_times: int = 3,
+        circling_times: int = 2,
         scrolling_times: int = 3,
         human_delay_base_delay: float = 1.2,
         dynamic_content_loading_delay: float = 2.0,
