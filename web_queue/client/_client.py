@@ -10,6 +10,7 @@ if typing.TYPE_CHECKING:
     from web_queue.client.config import Settings
     from web_queue.client.web import Web
     from web_queue.types.html_content import HTMLContent
+    from web_queue.types.step_callback import StepCallbackType
 
 
 class WebQueueClient:
@@ -46,6 +47,7 @@ class WebQueueClient:
         scrolling_times: int = 3,
         human_delay_base_delay: float = 1.2,
         dynamic_content_loading_delay: float = 2.0,
+        step_callback: typing.Optional[StepCallbackType] = None,
     ) -> "HTMLContent":
         from web_queue.types.html_content import HTMLContent
         from web_queue.utils.html_to_str import htmls_to_str
@@ -59,13 +61,16 @@ class WebQueueClient:
             scrolling_times=scrolling_times,
             human_delay_base_delay=human_delay_base_delay,
             dynamic_content_loading_delay=dynamic_content_loading_delay,
+            step_callback=step_callback,
         )
 
         # Clean HTML
         html = self.clean.as_main_content(html)
 
         # Extract content metadata
-        html_metadata = await self.ai.as_html_metadata(html)
+        html_metadata = await self.ai.as_html_metadata(
+            html, step_callback=step_callback
+        )
 
         if not html_metadata:
             raise ValueError(f"Failed to retrieve content metadata for url: {url}")

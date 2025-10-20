@@ -8,6 +8,7 @@ import logging_bullet_train as lbt
 from huey.api import Task
 
 import web_queue.config
+from web_queue.types.message import MessageStatus
 
 if typing.TYPE_CHECKING:
     from web_queue.client import WebQueueClient
@@ -41,13 +42,30 @@ huey_app = huey.RedisExpireHuey(
 )
 def fetch_html(
     message: typing.Union["FetchHTMLMessage", str, bytes], task: Task
-) -> str:
+) -> typing.Optional[typing.Text]:
     from web_queue.types.fetch_html_message import FetchHTMLMessage
 
     message = FetchHTMLMessage.from_any(message)
     message.id = task.id
+    message.status = MessageStatus.RUNNING
+
+    wq_cache_key = web_queue_settings.get_message_cache_key(message.id)
+
+    def update_message_cache(
+        total_steps: int | None = None,
+        completed_steps: int | None = None,
+        message_text: str | None = None,
+    ):
+        if total_steps is not None:
+            message.total_steps = total_steps
+        if completed_steps is not None:
+            message.completed_steps = completed_steps
+        if message_text is not None:
+            message.message = message_text
+        web_queue_settings.message_cache.set(wq_cache_key, message.model_dump_json())
 
     logger.info(f"Fetching HTML from {message.data.url}")
+    update_message_cache(message_text="Starting to fetch HTML...")
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -55,9 +73,17 @@ def fetch_html(
     try:
         wq_client: "WebQueueClient" = web_queue_settings.web_queue_client
         html_content: "HTMLContent" = loop.run_until_complete(
-            wq_client.fetch(**message.data.model_dump())
+            wq_client.fetch(
+                **message.data.model_dump(), step_callback=update_message_cache
+            )
         )
+        update_message_cache(100, 100, "Finished fetching HTML.")
         return html_content.model_dump_json()
+
+    except Exception as e:
+        update_message_cache(message_text=f"Failed to fetch HTML: {e}")
 
     finally:
         loop.close()
+
+    return None

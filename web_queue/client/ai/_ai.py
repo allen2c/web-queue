@@ -11,6 +11,7 @@ from rich.pretty import pretty_repr
 
 from web_queue.client import WebQueueClient
 from web_queue.types.html_metadata_response import HTMLMetadataResponse
+from web_queue.types.step_callback import StepCallbackType
 from web_queue.utils.compression import compress, decompress
 
 if typing.TYPE_CHECKING:
@@ -25,7 +26,9 @@ class AI:
 
     @logfire.instrument
     async def as_html_metadata(
-        self, html: typing.Union["bs4.BeautifulSoup", typing.Text]
+        self,
+        html: typing.Union["bs4.BeautifulSoup", typing.Text],
+        step_callback: typing.Optional[StepCallbackType] = None,
     ) -> typing.Optional[HTMLMetadataResponse]:
         """Extract content metadata and CSS selector from HTML.
 
@@ -103,6 +106,9 @@ class AI:
             """  # noqa: E501
         ).strip()
 
+        if step_callback:
+            step_callback(100, 75, "Starting to extract content metadata...")
+
         try:
             parsed_cmpl = await openai_client.chat.completions.parse(
                 messages=[
@@ -128,6 +134,9 @@ class AI:
                     cache_key,
                     compress(output.model_dump_json()),
                 )
+
+                if step_callback:
+                    step_callback(100, 90, "Finished extracting content metadata.")
 
                 return output
 

@@ -14,6 +14,7 @@ class MessageStatus(enum.StrEnum):
 
 class Message(pydantic.BaseModel):
     id: str | None = None
+    message: str = ""
     data: typing.Any
     status: MessageStatus = pydantic.Field(default=MessageStatus.PENDING)
     total_steps: int = pydantic.Field(default=100)

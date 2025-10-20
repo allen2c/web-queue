@@ -14,6 +14,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from str_or_none import str_or_none
 
 from web_queue.client import WebQueueClient
+from web_queue.types.step_callback import StepCallbackType
 from web_queue.utils.compression import compress, decompress
 from web_queue.utils.human_delay import human_delay
 from web_queue.utils.page_with_init_script import page_with_init_script
@@ -48,6 +49,7 @@ class Web:
         scrolling_times: int = 3,
         human_delay_base_delay: float = 1.2,
         dynamic_content_loading_delay: float = 2.0,
+        step_callback: typing.Optional[StepCallbackType] = None,
     ) -> bs4.BeautifulSoup:
         _url = str_or_none(str(url))
         if not _url:
@@ -77,6 +79,8 @@ class Web:
                     "--disable-features=VizDisplayCompositor",
                 ],
             )
+            if step_callback:
+                step_callback(100, 15, "Launching browser...")
 
             # Create context
             _viewport_size = secrets.choice(self.VIEWPORT_SIZES)
@@ -101,6 +105,9 @@ class Web:
             # Inject script to hide automation features
             page = await page_with_init_script(page)
 
+            if step_callback:
+                step_callback(100, 30, "Navigating to URL...")
+
             try:
                 # Navigate to URL
                 logger.debug(f"Navigating (timeout: {goto_timeout}ms) to {_url}")
@@ -116,6 +123,9 @@ class Web:
                 logger.debug(f"Waiting {h_delay}s for full page load")
                 await page.wait_for_load_state("domcontentloaded")
                 await human_delay(h_delay)
+
+                if step_callback:
+                    step_callback(100, 45, "Waiting for full page load...")
 
                 # Simulate smooth mouse circling three times
                 start_position = None
@@ -144,6 +154,9 @@ class Web:
                 logger.info(
                     f"Fetched HTML content size: {html_content_size} for {_url}"
                 )
+
+                if step_callback:
+                    step_callback(100, 60, "Finished fetching HTML content.")
 
                 # Screenshot and PDF
                 snapshot_filename = f"{int(time.time()*1E3)}_{secrets.token_hex(2)}"
