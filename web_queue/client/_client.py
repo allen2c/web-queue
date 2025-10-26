@@ -8,6 +8,7 @@ if typing.TYPE_CHECKING:
     from web_queue.client.ai import AI
     from web_queue.client.clean import Clean
     from web_queue.client.config import Settings
+    from web_queue.client.messages import Messages
     from web_queue.client.web import Web
     from web_queue.types.html_content import HTMLContent
     from web_queue.types.step_callback import StepCallbackType
@@ -36,6 +37,12 @@ class WebQueueClient:
         from web_queue.client.ai import AI
 
         return AI(self)
+
+    @functools.cached_property
+    def messages(self) -> "Messages":
+        from web_queue.client.messages import Messages
+
+        return Messages(self)
 
     async def fetch(
         self,
