@@ -6,7 +6,8 @@ import html_to_markdown
 
 def html_to_str(html: bs4.BeautifulSoup | bs4.Tag | str) -> str:
     html = bs4.BeautifulSoup(html, "html.parser") if isinstance(html, str) else html
-    return html_to_markdown.convert(str(html)).strip()
+    content = html_to_markdown.convert(str(html)).strip()
+    return "\n".join(line.rstrip() for line in content.splitlines())
 
 
 def htmls_to_str(
