@@ -1,3 +1,4 @@
+import time
 import typing
 
 import fastapi
@@ -10,21 +11,30 @@ class Messages:
     def __init__(self, client: WebQueueClient):
         self.client = client
 
-    def get(self, message_id: str) -> typing.Optional[str]:
-        message_cache_key = self.get_cache_key(message_id)
-        maybe_json = self.client.settings.message_cache.get(message_cache_key)
+    def get(self, message_id: str, *, timeout: float = 10.0) -> typing.Optional[str]:
+        ts = time.perf_counter()
+        while time.perf_counter() - ts < timeout:
+            message_cache_key = self.get_cache_key(message_id)
+            maybe_json = self.client.settings.message_cache.get(message_cache_key)
+            if maybe_json is not None:
+                break
+            else:
+                time.sleep(0.1)
+
         if maybe_json is None:
             return None
         return maybe_json
 
-    def retrieve(self, message_id: str) -> str:
-        json_data = self.get(message_id)
+    def retrieve(self, message_id: str, *, timeout: float = 10.0) -> str:
+        json_data = self.get(message_id, timeout=timeout)
         if json_data is None:
             raise fastapi.HTTPException(status_code=404, detail="Message not found")
         return json_data
 
-    def retrieve_as(self, message_id: str, type: typing.Type[MessageVar]) -> MessageVar:
-        json_data = self.retrieve(message_id)
+    def retrieve_as(
+        self, message_id: str, type: typing.Type[MessageVar], *, timeout: float = 10.0
+    ) -> MessageVar:
+        json_data = self.retrieve(message_id, timeout=timeout)
         return type.model_validate_json(json_data)
 
     def set(self, message_id: str, message: Message) -> None:

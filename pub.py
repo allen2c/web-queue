@@ -2,35 +2,68 @@ import argparse
 import time
 import typing
 
+import rich.console
+import rich.progress
 from huey.api import Result
 from str_or_none import str_or_none
 
-from web_queue.app import fetch_html
+from web_queue.app import fetch_html, huey_app
+from web_queue.client import Settings, WebQueueClient
 from web_queue.types.fetch_html_message import FetchHTMLMessage, FetchHTMLMessageRequest
+from web_queue.types.html_content import HTMLContent
+from web_queue.types.message import MessageStatus
 
 WAIT_FOR_SECONDS = 60
 
+console = rich.console.Console()
+
+wq_settings = Settings()
+wq_client = WebQueueClient(wq_settings)
+
 
 def main(url: str):
-    task = fetch_html(
-        FetchHTMLMessage(
-            data=FetchHTMLMessageRequest(
-                url=url,
-                headless=False,
-            )
-        )
+    task = typing.cast(
+        Result,
+        fetch_html(
+            FetchHTMLMessage(data=FetchHTMLMessageRequest(url=url, headless=False))
+        ),
     )
-    task = typing.cast(Result, task)
-    print(f"Task ID: {task.id}")
+    console.print(f"[green]Task ID: {task.id}[/green]")
 
     start_time = time.perf_counter()
-    while time.perf_counter() - start_time < WAIT_FOR_SECONDS:
-        result: str | None = task.get(blocking=False)  # type: ignore
-        if result is not None:
-            break
-        time.sleep(0.1)
+    with rich.progress.Progress(
+        rich.progress.TextColumn("[progress.description]{task.description}"),
+        rich.progress.BarColumn(),
+        "[progress.percentage]{task.percentage:>3.0f}%",
+        rich.progress.TimeRemainingColumn(),
+    ) as progress:
+        progress_task = progress.add_task("Starting ...")
+        while time.perf_counter() - start_time < WAIT_FOR_SECONDS:
+            msg = wq_client.messages.retrieve_as(task.id, FetchHTMLMessage)
+            if msg is not None:
+                progress.update(
+                    progress_task,
+                    completed=msg.completed_steps,
+                    total=msg.total_steps,
+                    description=msg.message_text,
+                )
+            if msg.status in [MessageStatus.COMPLETED, MessageStatus.FAILED]:
+                break
+            time.sleep(0.5)
 
-    print(type(result))
+    if msg is None:
+        console.print("[red]No result found[/red]")
+        exit(1)
+
+    time.sleep(1)
+    result: str | None = huey_app.result(task.id, blocking=False)  # type: ignore
+    if result is None:
+        raise ValueError("No result found")
+
+    html_content = HTMLContent.model_validate_json(result)
+    console.print("---")
+    console.print(html_content.content)
+    console.print("---")
 
 
 if __name__ == "__main__":
