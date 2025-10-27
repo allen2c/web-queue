@@ -36,3 +36,12 @@ class Message(pydantic.BaseModel):
 
 
 MessageVar = typing.TypeVar("MessageVar", bound=Message)
+
+
+class MessageUpdate(pydantic.BaseModel):
+    message_text: typing.Optional[str] = None
+    data: typing.Optional[typing.Any] = None
+    status: typing.Optional[MessageStatus] = None
+    total_steps: typing.Optional[int] = None
+    completed_steps: typing.Optional[int] = None
+    error: typing.Optional[str] = None

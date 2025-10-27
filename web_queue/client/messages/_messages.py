@@ -3,7 +3,7 @@ import typing
 import fastapi
 
 from web_queue.client import WebQueueClient
-from web_queue.types.message import Message, MessageStatus, MessageVar
+from web_queue.types.message import Message, MessageUpdate, MessageVar
 
 
 class Messages:
@@ -36,27 +36,21 @@ class Messages:
     def update(
         self,
         message_id: str,
-        *,
-        message_text: typing.Optional[str] = None,
-        data: typing.Optional[typing.Any] = None,
-        status: typing.Optional[MessageStatus] = None,
-        total_steps: typing.Optional[int] = None,
-        completed_steps: typing.Optional[int] = None,
-        error: typing.Optional[str] = None,
+        message_update: MessageUpdate,
     ) -> Message:
         message = self.retrieve_as(message_id, Message)
-        if message_text is not None:
-            message.message_text = message_text
-        if data is not None:
-            message.data = data
-        if status is not None:
-            message.status = status
-        if total_steps is not None:
-            message.total_steps = total_steps
-        if completed_steps is not None:
-            message.completed_steps = completed_steps
-        if error is not None:
-            message.error = error
+        if message_update.message_text is not None:
+            message.message_text = message_update.message_text
+        if message_update.data is not None:
+            message.data = message_update.data
+        if message_update.status is not None:
+            message.status = message_update.status
+        if message_update.total_steps is not None:
+            message.total_steps = message_update.total_steps
+        if message_update.completed_steps is not None:
+            message.completed_steps = message_update.completed_steps
+        if message_update.error is not None:
+            message.error = message_update.error
         self.set(message_id, message)
 
         return message
@@ -64,26 +58,19 @@ class Messages:
     def wrap_update_message(
         self, message_id: str, message: Message
     ) -> typing.Callable[..., None]:
-        def _update(
-            message_text: typing.Optional[str] = None,
-            data: typing.Optional[typing.Any] = None,
-            status: typing.Optional[MessageStatus] = None,
-            total_steps: typing.Optional[int] = None,
-            completed_steps: typing.Optional[int] = None,
-            error: typing.Optional[str] = None,
-        ) -> None:
-            if message_text is not None:
-                message.message_text = message_text
-            if data is not None:
-                message.data = data
-            if status is not None:
-                message.status = status
-            if total_steps is not None:
-                message.total_steps = total_steps
-            if completed_steps is not None:
-                message.completed_steps = completed_steps
-            if error is not None:
-                message.error = error
+        def _update(message_update: MessageUpdate) -> None:
+            if message_update.message_text is not None:
+                message.message_text = message_update.message_text
+            if message_update.data is not None:
+                message.data = message_update.data
+            if message_update.status is not None:
+                message.status = message_update.status
+            if message_update.total_steps is not None:
+                message.total_steps = message_update.total_steps
+            if message_update.completed_steps is not None:
+                message.completed_steps = message_update.completed_steps
+            if message_update.error is not None:
+                message.error = message_update.error
             self.set(message_id, message)
 
         return _update
