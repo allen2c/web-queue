@@ -57,7 +57,7 @@ class Messages:
 
     def wrap_update_message(
         self, message_id: str, message: Message
-    ) -> typing.Callable[..., None]:
+    ) -> typing.Callable[[MessageUpdate], None]:
         def _update(message_update: MessageUpdate) -> None:
             if message_update.message_text is not None:
                 message.message_text = message_update.message_text

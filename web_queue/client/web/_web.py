@@ -14,7 +14,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from str_or_none import str_or_none
 
 from web_queue.client import WebQueueClient
-from web_queue.types.step_callback import StepCallbackType
+from web_queue.types.message import MessageUpdate
 from web_queue.utils.compression import compress, decompress
 from web_queue.utils.human_delay import human_delay
 from web_queue.utils.page_with_init_script import page_with_init_script
@@ -49,7 +49,7 @@ class Web:
         scrolling_times: int = 3,
         human_delay_base_delay: float = 1.2,
         dynamic_content_loading_delay: float = 2.0,
-        step_callback: typing.Optional[StepCallbackType] = None,
+        step_callback: typing.Optional[typing.Callable[["MessageUpdate"], None]] = None,
     ) -> bs4.BeautifulSoup:
         _url = str_or_none(str(url))
         if not _url:
@@ -80,7 +80,13 @@ class Web:
                 ],
             )
             if step_callback:
-                step_callback(100, 15, "Launching browser...")
+                step_callback(
+                    MessageUpdate(
+                        total_steps=100,
+                        completed_steps=15,
+                        message_text="Launching browser...",
+                    )
+                )
 
             # Create context
             _viewport_size = secrets.choice(self.VIEWPORT_SIZES)
@@ -106,7 +112,13 @@ class Web:
             page = await page_with_init_script(page)
 
             if step_callback:
-                step_callback(100, 30, "Navigating to URL...")
+                step_callback(
+                    MessageUpdate(
+                        total_steps=100,
+                        completed_steps=30,
+                        message_text="Navigating to URL...",
+                    )
+                )
 
             try:
                 # Navigate to URL
@@ -125,7 +137,13 @@ class Web:
                 await human_delay(h_delay)
 
                 if step_callback:
-                    step_callback(100, 45, "Waiting for full page load...")
+                    step_callback(
+                        MessageUpdate(
+                            total_steps=100,
+                            completed_steps=45,
+                            message_text="Waiting for full page load...",
+                        )
+                    )
 
                 # Simulate smooth mouse circling three times
                 start_position = None
@@ -156,7 +174,13 @@ class Web:
                 )
 
                 if step_callback:
-                    step_callback(100, 60, "Finished fetching HTML content.")
+                    step_callback(
+                        MessageUpdate(
+                            total_steps=100,
+                            completed_steps=60,
+                            message_text="Finished fetching HTML content.",
+                        )
+                    )
 
                 # Screenshot and PDF
                 snapshot_filename = f"{int(time.time()*1E3)}_{secrets.token_hex(2)}"
