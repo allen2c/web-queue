@@ -2,7 +2,9 @@ import asyncio
 import logging
 import typing
 
+import fastapi
 import huey
+import huey.exceptions
 import logfire
 import logging_bullet_train as lbt
 from huey.api import Task
@@ -11,6 +13,7 @@ from web_queue.client import Settings, WebQueueClient
 from web_queue.types.fetch_html_message import FetchHTMLMessage
 from web_queue.types.html_content import HTMLContent
 from web_queue.types.message import MessageStatus, MessageUpdate
+from web_queue.types.model_var import ModelVar
 
 lbt.set_logger("web_queue")
 
@@ -30,6 +33,30 @@ huey_app = huey.RedisExpireHuey(
     url=wq_settings.WEB_QUEUE_URL.get_secret_value(),
     expire_time=24 * 60 * 60,  # 24 hours
 )
+
+
+def retrieve_result(task_id: str) -> typing.Optional[typing.Text]:
+    try:
+        result: str | None = huey_app.result(
+            task_id,
+            blocking=True,
+            timeout=2,
+        )  # type: ignore
+    except huey.exceptions.ResultTimeout:
+        logger.error(f"Timeout waiting for result for task {task_id}")
+        return None
+    if result is None:
+        logger.error(f"No result found for task {task_id}")
+    return result
+
+
+def retrieve_result_as(task_id: str, model: typing.Type[ModelVar]) -> ModelVar:
+    result = retrieve_result(task_id)
+    if result is None:
+        raise fastapi.HTTPException(
+            status_code=404, detail=f"No result found for task {task_id}"
+        )
+    return model.model_validate_json(result)
 
 
 @huey_app.task(
@@ -76,7 +103,7 @@ def fetch_html(
                 total_steps=100,
                 completed_steps=100,
                 status=MessageStatus.COMPLETED,
-                message_text="Finished fetching HTML.",
+                message_text="Finished fetching HTML",
             )
         )
 

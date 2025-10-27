@@ -4,7 +4,7 @@ import typing
 import fastapi
 
 from web_queue.client import WebQueueClient
-from web_queue.types.message import Message, MessageUpdate, MessageVar
+from web_queue.types.message import Message, MessageStatus, MessageUpdate, MessageVar
 
 
 class Messages:
@@ -32,10 +32,10 @@ class Messages:
         return json_data
 
     def retrieve_as(
-        self, message_id: str, type: typing.Type[MessageVar], *, timeout: float = 10.0
+        self, message_id: str, model: typing.Type[MessageVar], *, timeout: float = 10.0
     ) -> MessageVar:
         json_data = self.retrieve(message_id, timeout=timeout)
-        return type.model_validate_json(json_data)
+        return model.model_validate_json(json_data)
 
     def set(self, message_id: str, message: Message) -> None:
         message_cache_key = self.get_cache_key(message_id)
@@ -84,6 +84,33 @@ class Messages:
             self.set(message_id, message)
 
         return _update
+
+    def poll_util_done(
+        self,
+        message_id: str,
+        *,
+        timeout: float = 60.0,
+        model: typing.Type[MessageVar],
+        delay: float = 0.2,
+    ) -> MessageVar:
+        ts = time.perf_counter()
+        msg: MessageVar | None = None
+
+        while is_timeout := (time.perf_counter() - ts < timeout):
+            msg = self.retrieve_as(message_id, model)
+            if msg.status in [MessageStatus.COMPLETED, MessageStatus.FAILED]:
+                break
+            time.sleep(delay)
+
+        if msg is None:
+            raise fastapi.HTTPException(status_code=404, detail="Message not found")
+
+        if is_timeout:
+            raise fastapi.HTTPException(
+                status_code=408, detail="Timeout waiting for message to be done"
+            )
+
+        return msg
 
     def get_cache_key(self, message_id: str) -> str:
         return f"{self.client.settings.WEB_QUEUE_NAME}:message:{message_id}"

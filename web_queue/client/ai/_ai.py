@@ -149,7 +149,7 @@ class AI:
                         MessageUpdate(
                             total_steps=100,
                             completed_steps=90,
-                            message_text="Finished extracting content metadata.",
+                            message_text="Finished extracting content metadata",
                         )
                     )
 

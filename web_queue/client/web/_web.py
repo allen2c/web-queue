@@ -178,7 +178,7 @@ class Web:
                         MessageUpdate(
                             total_steps=100,
                             completed_steps=60,
-                            message_text="Finished fetching HTML content.",
+                            message_text="Finished fetching HTML content",
                         )
                     )
 
