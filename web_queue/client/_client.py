@@ -8,9 +8,10 @@ if typing.TYPE_CHECKING:
     from web_queue.client.ai import AI
     from web_queue.client.clean import Clean
     from web_queue.client.config import Settings
+    from web_queue.client.messages import Messages
     from web_queue.client.web import Web
     from web_queue.types.html_content import HTMLContent
-    from web_queue.types.step_callback import StepCallbackType
+    from web_queue.types.message import MessageUpdate
 
 
 class WebQueueClient:
@@ -37,6 +38,12 @@ class WebQueueClient:
 
         return AI(self)
 
+    @functools.cached_property
+    def messages(self) -> "Messages":
+        from web_queue.client.messages import Messages
+
+        return Messages(self)
+
     async def fetch(
         self,
         url: yarl.URL | httpx.URL | str,
@@ -47,7 +54,7 @@ class WebQueueClient:
         scrolling_times: int = 3,
         human_delay_base_delay: float = 1.2,
         dynamic_content_loading_delay: float = 2.0,
-        step_callback: typing.Optional["StepCallbackType"] = None,
+        step_callback: typing.Optional[typing.Callable[["MessageUpdate"], None]] = None,
     ) -> "HTMLContent":
         from web_queue.types.html_content import HTMLContent
         from web_queue.utils.html_to_str import htmls_to_str

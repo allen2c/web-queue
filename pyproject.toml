@@ -5,6 +5,7 @@ dependencies = [
   "cachetic",
   "dictpress",
   "fastapi",
+  "html-to-markdown",
   "httpx",
   "huey",
   "logfire[redis]",
@@ -16,6 +17,7 @@ dependencies = [
   "pydantic-settings",
   "str-or-none",
   "tiktoken",
+  "typer",
   "yarl",
 ]
 description = "Get web content from queue."
@@ -23,7 +25,7 @@ license = { text = "MIT" }
 name = "web-queue2"
 readme = "README.md"
 requires-python = ">=3.11,<4"
-version = "0.2.0"
+version = "0.3.0"
 
 [project.urls]
 Homepage = "https://github.com/allen2c/web-queue"
